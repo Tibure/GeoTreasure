@@ -58,6 +58,11 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         // Add a marker in Sydney, Australia,
         // and move the map's camera to the same location.
         LatLng sydney = new LatLng(-33.852, 151.211);
+        LatLng saintGeorges = new LatLng(45.3467755,-72.2796581);
+        googleMap.addMarker(new MarkerOptions()
+        .position(saintGeorges)
+        .title("Test saint-georges")
+                            );
         googleMap.addMarker(new MarkerOptions()
                 .position(sydney)
                 .title("Marker in Sydney"));
