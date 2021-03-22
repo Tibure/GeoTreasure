@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BonneAppliGeo</string>
+    <string name="title_activity_treasure_maps">Map</string>
 </resources>
