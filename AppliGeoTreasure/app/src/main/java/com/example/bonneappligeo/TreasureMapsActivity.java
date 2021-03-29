@@ -1,15 +1,18 @@
 package com.example.bonneappligeo;
 
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentActivity;
-
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -17,22 +20,17 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.CancellationToken;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.OnTokenCanceledListener;
-import com.google.android.gms.tasks.Task;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY;
 
 
 public class TreasureMapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    public static final int DEFAULT_UPDATE_INTERVAL = 30;
+    public static final int FAST_UPDATE_INTERVAL = 5;
+    private static final int PERMISSION_FINE_LOCATION = 99;
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
-    CancellationToken tokenCancellation;
-
+    LocationRequest locationRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +42,29 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        addListener();
+
+        locationRequest = new LocationRequest();
+        locationRequest.setInterval(1000 * DEFAULT_UPDATE_INTERVAL);
+        locationRequest.setFastestInterval(1000 * FAST_UPDATE_INTERVAL);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        updateGPS();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch(requestCode){
+            case PERMISSION_FINE_LOCATION:
+                if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    updateGPS();
+                }
+                else{
+                    Toast.makeText(this,"Cette application a besoins des permissions GPS", Toast.LENGTH_SHORT).show();
+                    //finish(); // PEUT ÊTRE CHANGER ÇA
+                }
+        }
     }
 
     @Override
@@ -62,51 +81,39 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 .position(sydney)
                 .title("Marker in Sydney"));
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-
-
-        fusedLocationProviderClient.getCurrentLocation(PRIORITY_HIGH_ACCURACY, 2)
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-
-                        if (location != null) {
-
-                        }
-                    }
-                });
-
+        mMap = googleMap;
     }
 
-    private void getLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
 
-        fusedLocationProviderClient.getCurrentLocation(PRIORITY_HIGH_ACCURACY, tokenCancellation).addOnSuccessListener(this, new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-
-                if (location != null) {
-                    location.getAltitude();
-                    location.getLatitude();
-                    location.getLongitude();
+    private void updateGPS(){
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if(location != null)
+                        updateGPSValues(location);
+                    else
+                        Toast.makeText(getApplicationContext(), "Could not get GPS location", Toast.LENGTH_SHORT).show();
                 }
+            });
+        } else {
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                requestPermissions(new String[] { Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_FINE_LOCATION);
             }
-        });
-
-
-
+        }
     }
+    private void updateGPSValues(Location location){
+        String strLocation;
+        strLocation = "Lat: "+ String.valueOf(location.getLatitude()) + "| Long: "+ String.valueOf(location.getLongitude());
+        Toast.makeText(getApplicationContext(), strLocation, Toast.LENGTH_SHORT).show();
+        LatLng saint_georges = new LatLng(location.getLatitude(), location.getLongitude());
 
-    private void addListener(){
-        tokenCancellation.onCanceledRequested(new OnTokenCanceledListener() {
-            @Override
-            public void onCanceled() {
-                Toast.makeText(getApplicationContext(),"allo",Toast.LENGTH_LONG).show();
-            }
-        });
+        mMap.addMarker(new MarkerOptions()
+                .position(saint_georges)
+                .title("Test saint-georges")
+        );
     }
-
 }
 
 
