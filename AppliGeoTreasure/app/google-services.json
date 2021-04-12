@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "409077173607",
+    "project_id": "geotreasure-885bb",
+    "storage_bucket": "geotreasure-885bb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:409077173607:android:9d5d028fbcbd64c7efb3c2",
+        "android_client_info": {
+          "package_name": "com.example.bonneappligeo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "409077173607-f0pvvlbgr4o2hqjh6dvosklcccie0etg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC34q-AvwSHO1UEpUHIev4Rmoco7Hhyxh8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "409077173607-f0pvvlbgr4o2hqjh6dvosklcccie0etg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
