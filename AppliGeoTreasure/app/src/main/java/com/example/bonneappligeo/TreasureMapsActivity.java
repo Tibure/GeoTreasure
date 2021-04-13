@@ -160,11 +160,29 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         double rangeMinLon = location.getLongitude() - 0.07;
         double rangeMaxLon = location.getLongitude() + 0.07;
         Random random = new Random();
-        Toast.makeText(getApplicationContext(), strLocation, Toast.LENGTH_SHORT).show();
-        for (int i = 0; i < 4; i++) {
+        //Toast.makeText(getApplicationContext(), strLocation, Toast.LENGTH_SHORT).show();
+        for (int i = 0; i < 1; i++) {
             double randomValueLat = rangeMinLat + ( rangeMaxLat - rangeMinLat) * random.nextDouble();
             double randomValueLon = rangeMinLon + ( rangeMaxLon - rangeMinLon) * random.nextDouble();
-            generateNumberOfTreasures(randomValueLat, randomValueLon);
+           // generateNumberOfTreasures(randomValueLat, randomValueLon);
+            LatLng newMarker = new LatLng(randomValueLat, randomValueLon);
+            mMap.addMarker(new MarkerOptions()
+                    .position(newMarker)
+                    .title("Test 1" )
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
+            );
+            LatLng newMarker2 = new LatLng(randomValueLat + 0.001, randomValueLon + 0.001);
+
+            mMap.addMarker(new MarkerOptions()
+                    .position(newMarker)
+                    .title("Test 2" )
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
+            );
+
+            double a = newMarker2.latitude - newMarker.latitude;
+            double b = newMarker2.longitude - newMarker.longitude;
+            double distance =  Math.sqrt((a * a) + (b * b));
+            Toast.makeText(getApplicationContext(), String.valueOf(distance), Toast.LENGTH_SHORT).show();
         }
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
@@ -181,7 +199,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
         );
     }
-
+    
    private LatLng getMaxDistLatLng(int metres){
         LatLng BoundMaxDist;
         int earth_rad = 6371000;
