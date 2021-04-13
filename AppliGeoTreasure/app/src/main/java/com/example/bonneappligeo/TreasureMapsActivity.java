@@ -81,7 +81,6 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        //updateGPS();
         setListener();
         setCallback();
     }
@@ -123,7 +122,6 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                     updateGPS();
                 } else {
                     Toast.makeText(this, "Cette application a besoin des permissions GPS", Toast.LENGTH_SHORT).show();
-                    //finish(); // PEUT ÊTRE CHANGER ÇA
                 }
         }
     }
@@ -172,7 +170,6 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         );
 
         if(gameStarting){
-            //? doit s'assurer que le jeux est commencé.
             generateRandomTreasures(NUMBER_OF_TREASURE, location);
             gameStarting = false;
             mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
@@ -209,7 +206,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
 
         for (Marker treasureLocation : treasureLocations)
         {
-            // Use Pythagore to calculate the distance between the player and each chest
+            // Utiliser Pythagore pour calculer la distance entre le joueur et chaque coffre.
             double latitudeDistance = treasureLocation.getPosition().latitude - playerLocation.getLatitude();
             double longitudeDistance = treasureLocation.getPosition().longitude - playerLocation.getLongitude();
             double distance =  Math.sqrt((latitudeDistance * latitudeDistance) + (longitudeDistance * longitudeDistance));
