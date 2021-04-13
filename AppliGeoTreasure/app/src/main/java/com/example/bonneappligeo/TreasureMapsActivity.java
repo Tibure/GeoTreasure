@@ -32,6 +32,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import java.util.Random;
+
 
 public class TreasureMapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -79,7 +81,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     updateGPS();
                 } else {
-                    Toast.makeText(this, "Cette application a besoins des permissions GPS", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Cette application a besoin des permissions GPS", Toast.LENGTH_SHORT).show();
                     //finish(); // PEUT ÊTRE CHANGER ÇA
                 }
         }
@@ -94,7 +96,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
 
 
         mMap = googleMap;
-        generateTreasure();
+        //generateTreasure();
     }
 
     private void generateTreasure() {
@@ -103,18 +105,19 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         int TreasureCount = ValuesIntent.getIntExtra("TreasureCount", 10);
         LatLng maxBound = getMaxDistLatLng(max_distance_metres);
 
-//        LatLng sydney = new LatLng(-33.852, 151.211);
-//        LatLng saintGeorges = new LatLng(45.3467755, -72.2796581);
-//        mMap.addMarker(new MarkerOptions()
-//                .position(saintGeorges)
-//                .title("Test saint-georges")
-//                .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
-//        );
-//        mMap.addMarker(new MarkerOptions()
-//                .position(sydney)
-//                .title("Marker in Sydney")
-//                .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
-//        );
+        LatLng sydney = new LatLng(-33.852, 151.211);
+        LatLng saintGeorges = new LatLng(45.3467755, -72.2796581);
+        mMap.addMarker(new MarkerOptions()
+                .position(saintGeorges)
+                .title("Test saint-georges")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
+        );
+        mMap.addMarker(new MarkerOptions()
+                .position(sydney)
+                .title("Marker in Sydney")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
+        );
+
     }
 
 
@@ -149,15 +152,34 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
 
         mCurrentLocation = mMap.addMarker(new MarkerOptions()
                 .position(myLocation)
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.pirate))
         );
 
+        double rangeMinLat = location.getLatitude() - 0.07;
+        double rangeMaxLat = location.getLatitude() + 0.07;
+        double rangeMinLon = location.getLongitude() - 0.07;
+        double rangeMaxLon = location.getLongitude() + 0.07;
+        Random random = new Random();
+        Toast.makeText(getApplicationContext(), strLocation, Toast.LENGTH_SHORT).show();
+        for (int i = 0; i < 4; i++) {
+            double randomValueLat = rangeMinLat + ( rangeMaxLat - rangeMinLat) * random.nextDouble();
+            double randomValueLon = rangeMinLon + ( rangeMaxLon - rangeMinLon) * random.nextDouble();
+            generateNumberOfTreasures(randomValueLat, randomValueLon);
+        }
 
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
+        mMap.animateCamera((CameraUpdateFactory.zoomTo(15)));
 
+    }
 
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
-        //mMap.animateCamera((CameraUpdateFactory.zoomTo(15)));
+    private void generateNumberOfTreasures(double valueLat, double valueLon) {
+        LatLng newMarker = new LatLng(valueLat, valueLon);
 
+        mMap.addMarker(new MarkerOptions()
+                .position(newMarker)
+                .title("Test " + valueLat + " " + valueLon)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
+        );
     }
 
    private LatLng getMaxDistLatLng(int metres){
