@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -13,7 +14,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -23,9 +26,13 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -41,10 +48,14 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Marker mCurrentLocation;
-    private Marker mTargetTreasures;
     LocationRequest locationRequest;
+    private LocationCallback locationCallback;
     LatLng myLocation;
     List<Marker> treasureLocations;
+    boolean gameStarting = true;
+    FirebaseFirestore db;
+    private int treasuresFound = 0;
+    private UserScore userScore = new UserScore();
 
 
     @Override
@@ -58,13 +69,45 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        db = FirebaseFirestore.getInstance();
+
+        Date startDate = new Date();
+        userScore.setStartDate(startDate);
+
         locationRequest = new LocationRequest();
         locationRequest.setInterval(1000 * DEFAULT_UPDATE_INTERVAL);
         locationRequest.setFastestInterval(1000 * FAST_UPDATE_INTERVAL);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        updateGPS();
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        //updateGPS();
         setListener();
+        setCallback();
+    }
+
+    private void setCallback() {
+        locationCallback = new LocationCallback(){
+
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+                // save the Location
+                updateGPSValues(locationResult.getLastLocation());
+            }
+        };
+    }
+
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
+            updateGPS();
+        }
+
+    }
+
+    private void stopLocationUpdates(){
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
     private void setListener() {
@@ -74,7 +117,6 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
         switch (requestCode) {
             case PERMISSION_FINE_LOCATION:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -89,39 +131,18 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             googleMap.setMyLocationEnabled(true);
         }
-
-
+        startLocationUpdates();
         mMap = googleMap;
-        //generateTreasure();
     }
 
-    private void generateTreasure() {
-        Intent ValuesIntent = getIntent();
-        int max_distance_metres = ValuesIntent.getIntExtra("max_distance_metres", 2000);
-        int TreasureCount = ValuesIntent.getIntExtra("TreasureCount", 10);
-        LatLng maxBound = getMaxDistLatLng(max_distance_metres);
 
-        LatLng sydney = new LatLng(-33.852, 151.211);
-        LatLng saintGeorges = new LatLng(45.3467755, -72.2796581);
-        mMap.addMarker(new MarkerOptions()
-                .position(saintGeorges)
-                .title("Test saint-georges")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
-        );
-        mMap.addMarker(new MarkerOptions()
-                .position(sydney)
-                .title("Marker in Sydney")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
-        );
-
-    }
 
 
     private void updateGPS() {
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
                 @Override
@@ -152,40 +173,16 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 .position(myLocation)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.pirate))
         );
-        generateRandomTreasures(NUMBER_OF_TREASURE, location);
+
+        if(gameStarting){
+            //? doit s'assurer que le jeux est commencé.
+            generateRandomTreasures(NUMBER_OF_TREASURE, location);
+            gameStarting = false;
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
+            mMap.animateCamera((CameraUpdateFactory.zoomTo(15)));
+        }
 
         removeTreasureIfCollected(location);
-
-/*        double rangeMinLat = location.getLatitude() - RANGE_MIN_DISTANCE;
-        double rangeMaxLat = location.getLatitude() + RANGE_MIN_DISTANCE;
-        double rangeMinLon = location.getLongitude() - RANGE_MIN_DISTANCE;
-        double rangeMaxLon = location.getLongitude() + RANGE_MIN_DISTANCE;
-        Random random = new Random();
-        //Toast.makeText(getApplicationContext(), strLocation, Toast.LENGTH_SHORT).show();
-        for (int i = 0; i < 1; i++) {
-            double randomValueLat = rangeMinLat + ( rangeMaxLat - rangeMinLat) * random.nextDouble();
-            double randomValueLon = rangeMinLon + ( rangeMaxLon - rangeMinLon) * random.nextDouble();
-           // generateNumberOfTreasures(randomValueLat, randomValueLon);
-            LatLng newMarker = new LatLng(randomValueLat, randomValueLon);
-            mMap.addMarker(new MarkerOptions()
-                    .position(newMarker)
-                    .title("Test 1" )
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
-            );
-            LatLng newMarker2 = new LatLng(randomValueLat + 0.001, randomValueLon + 0.001);
-
-            mMap.addMarker(new MarkerOptions()
-                    .position(newMarker)
-                    .title("Test 2" )
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
-            );
-
-
-        }*/
-
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
-        mMap.animateCamera((CameraUpdateFactory.zoomTo(15)));
-
     }
 
     private void generateRandomTreasures(int numberOfTreasures, Location playerLocation) {
@@ -234,6 +231,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     }
 
     private void removeTreasureIfCollected(Location playerLocation) {
+
         for (Marker treasureLocation : treasureLocations)
         {
             // Use Pythagore to calculate the distance between the player and each chest
@@ -243,30 +241,35 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
             if (distance <= TREASURE_COLLECT_DISTANCE) {
                 Toast.makeText(getApplicationContext(), String.valueOf(distance) + " | " + String.valueOf(TREASURE_COLLECT_DISTANCE), Toast.LENGTH_LONG).show();
                 treasureLocation.remove();
+                treasuresFound++;
             }
         }
+        //TODO: Check if game is done et demander nom d'utilisateur
+        
+        setTitle("Trésors collectionés : " +String.valueOf(treasuresFound));
     }
+    private void gameEnded(){
+        userScore.setScore(treasuresFound);
+        userScore.setEndDate(new Date());
+        userScore.setUsername("Emilio");
 
-    /*    private void generateNumberOfTreasures(double valueLat, double valueLon) {
-        LatLng newMarker = new LatLng(valueLat, valueLon);
+        //TODO: mettre dans une interface
+        //*     Aller le chercher pour l'inscrire dans une nouvelle activité.
+        db.collection("UserScore")
+                .add(userScore)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Toast.makeText(getApplicationContext(), "Score sauvegardé", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getApplicationContext(), "Erreur, score non sauvegardé", Toast.LENGTH_SHORT).show();
+                    }
+                });
 
-        mMap.addMarker(new MarkerOptions()
-                .position(newMarker)
-                .title("Test " + valueLat + " " + valueLon)
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
-        );
-    }*/
-    
-   private LatLng getMaxDistLatLng(int metres){
-        LatLng BoundMaxDist;
-        int earth_rad = 6371000;
-        if (myLocation != null){
-           BoundMaxDist = new LatLng(myLocation.latitude  + (metres / earth_rad) * (180 / Math.PI), myLocation.longitude + (metres / earth_rad) * (180 / Math.PI) / Math.cos(myLocation.latitude * Math.PI/180));
-        }else{
-            BoundMaxDist = new LatLng(90,90);
-        }
-
-       return BoundMaxDist;
     }
 }
 
