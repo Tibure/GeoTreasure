@@ -162,9 +162,6 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     }
 
     private void updateGPSValues(@NonNull Location location) {
-        // String strLocation;
-        // strLocation = "Lat: " + String.valueOf(location.getLatitude()) + "| Long: " + String.valueOf(location.getLongitude());
-        // Toast.makeText(getApplicationContext(), strLocation, Toast.LENGTH_SHORT).show();
         myLocation = new LatLng(location.getLatitude(), location.getLongitude());
         if (mCurrentLocation != null) {
             mCurrentLocation.remove();
@@ -206,28 +203,6 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 treasureLocations = new ArrayList<Marker>();
             }
         }
-
-        // spawn proche du joueur
-/*        rangeMinLat = playerLocation.getLatitude() - 0.001;
-        rangeMaxLat = playerLocation.getLatitude() + 0.001;
-        rangeMinLon = playerLocation.getLongitude() - 0.001;
-        rangeMaxLon = playerLocation.getLongitude() + 0.001;
-        random = new Random();
-        for (int counter = 0; counter < 1; counter++) {
-            double randomValueLat = rangeMinLat + ( rangeMaxLat - rangeMinLat) * random.nextDouble();
-            double randomValueLon = rangeMinLon + ( rangeMaxLon - rangeMinLon) * random.nextDouble();
-            LatLng newTreasureMarker = new LatLng(randomValueLat, randomValueLon);
-            Marker marker = mMap.addMarker(new MarkerOptions()
-                    .position(newTreasureMarker)
-                    .title("Lat: " + String.valueOf(newTreasureMarker.latitude) + "| Long: " + String.valueOf(newTreasureMarker.longitude))
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
-            );
-            if (treasureLocations != null) {
-                treasureLocations.add(marker);
-            } else {
-                treasureLocations = new ArrayList<Marker>();
-            }
-        }*/
     }
 
     private void removeTreasureIfCollected(Location playerLocation) {
@@ -245,7 +220,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
             }
         }
         //TODO: Check if game is done et demander nom d'utilisateur
-        
+
         setTitle("Trésors collectionés : " +String.valueOf(treasuresFound));
     }
     private void gameEnded(){
