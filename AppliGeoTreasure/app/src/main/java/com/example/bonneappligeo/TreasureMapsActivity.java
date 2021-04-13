@@ -3,15 +3,9 @@ package com.example.bonneappligeo;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,7 +15,6 @@ import androidx.core.app.ActivityCompat;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -32,6 +25,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 
@@ -40,12 +35,16 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     public static final int DEFAULT_UPDATE_INTERVAL = 30;
     public static final int FAST_UPDATE_INTERVAL = 5;
     private static final int PERMISSION_FINE_LOCATION = 99;
+    private static final double RANGE_TREASURE_SPAWN_MIN_DISTANCE = 0.07;
+    private static final int NUMBER_OF_TREASURE = 4;
+    private static final double TREASURE_COLLECT_DISTANCE = 0.0015;
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Marker mCurrentLocation;
     private Marker mTargetTreasures;
     LocationRequest locationRequest;
     LatLng myLocation;
+    List<Marker> treasureLocations;
 
 
     @Override
@@ -78,7 +77,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
 
         switch (requestCode) {
             case PERMISSION_FINE_LOCATION:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     updateGPS();
                 } else {
                     Toast.makeText(this, "Cette application a besoin des permissions GPS", Toast.LENGTH_SHORT).show();
@@ -131,7 +130,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                         updateGPSValues(location);
                     }
                     else
-                        Toast.makeText(getApplicationContext(), "Could not get GPS location", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Impossible d'obtenir la localisation GPS ", Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
@@ -142,23 +141,25 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     }
 
     private void updateGPSValues(@NonNull Location location) {
-        String strLocation;
-        strLocation = "Lat: " + String.valueOf(location.getLatitude()) + "| Long: " + String.valueOf(location.getLongitude());
-        Toast.makeText(getApplicationContext(), strLocation, Toast.LENGTH_SHORT).show();
+        // String strLocation;
+        // strLocation = "Lat: " + String.valueOf(location.getLatitude()) + "| Long: " + String.valueOf(location.getLongitude());
+        // Toast.makeText(getApplicationContext(), strLocation, Toast.LENGTH_SHORT).show();
         myLocation = new LatLng(location.getLatitude(), location.getLongitude());
         if (mCurrentLocation != null) {
             mCurrentLocation.remove();
         }
-
         mCurrentLocation = mMap.addMarker(new MarkerOptions()
                 .position(myLocation)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.pirate))
         );
+        generateRandomTreasures(NUMBER_OF_TREASURE, location);
 
-        double rangeMinLat = location.getLatitude() - 0.07;
-        double rangeMaxLat = location.getLatitude() + 0.07;
-        double rangeMinLon = location.getLongitude() - 0.07;
-        double rangeMaxLon = location.getLongitude() + 0.07;
+        removeTreasureIfCollected(location);
+
+/*        double rangeMinLat = location.getLatitude() - RANGE_MIN_DISTANCE;
+        double rangeMaxLat = location.getLatitude() + RANGE_MIN_DISTANCE;
+        double rangeMinLon = location.getLongitude() - RANGE_MIN_DISTANCE;
+        double rangeMaxLon = location.getLongitude() + RANGE_MIN_DISTANCE;
         Random random = new Random();
         //Toast.makeText(getApplicationContext(), strLocation, Toast.LENGTH_SHORT).show();
         for (int i = 0; i < 1; i++) {
@@ -179,18 +180,74 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
             );
 
-            double a = newMarker2.latitude - newMarker.latitude;
-            double b = newMarker2.longitude - newMarker.longitude;
-            double distance =  Math.sqrt((a * a) + (b * b));
-            Toast.makeText(getApplicationContext(), String.valueOf(distance), Toast.LENGTH_SHORT).show();
-        }
+
+        }*/
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
         mMap.animateCamera((CameraUpdateFactory.zoomTo(15)));
 
     }
 
-    private void generateNumberOfTreasures(double valueLat, double valueLon) {
+    private void generateRandomTreasures(int numberOfTreasures, Location playerLocation) {
+        double rangeMinLat = playerLocation.getLatitude() - RANGE_TREASURE_SPAWN_MIN_DISTANCE;
+        double rangeMaxLat = playerLocation.getLatitude() + RANGE_TREASURE_SPAWN_MIN_DISTANCE;
+        double rangeMinLon = playerLocation.getLongitude() - RANGE_TREASURE_SPAWN_MIN_DISTANCE;
+        double rangeMaxLon = playerLocation.getLongitude() + RANGE_TREASURE_SPAWN_MIN_DISTANCE;
+        Random random = new Random();
+        for (int counter = 0; counter < numberOfTreasures; counter++) {
+            double randomValueLat = rangeMinLat + ( rangeMaxLat - rangeMinLat) * random.nextDouble();
+            double randomValueLon = rangeMinLon + ( rangeMaxLon - rangeMinLon) * random.nextDouble();
+            LatLng newTreasureMarker = new LatLng(randomValueLat, randomValueLon);
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(newTreasureMarker)
+                    .title("Lat: " + String.valueOf(newTreasureMarker.latitude) + "| Long: " + String.valueOf(newTreasureMarker.longitude))
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
+            );
+            if (treasureLocations != null) {
+                treasureLocations.add(marker);
+            } else {
+                treasureLocations = new ArrayList<Marker>();
+            }
+        }
+
+        // spawn proche du joueur
+/*        rangeMinLat = playerLocation.getLatitude() - 0.001;
+        rangeMaxLat = playerLocation.getLatitude() + 0.001;
+        rangeMinLon = playerLocation.getLongitude() - 0.001;
+        rangeMaxLon = playerLocation.getLongitude() + 0.001;
+        random = new Random();
+        for (int counter = 0; counter < 1; counter++) {
+            double randomValueLat = rangeMinLat + ( rangeMaxLat - rangeMinLat) * random.nextDouble();
+            double randomValueLon = rangeMinLon + ( rangeMaxLon - rangeMinLon) * random.nextDouble();
+            LatLng newTreasureMarker = new LatLng(randomValueLat, randomValueLon);
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(newTreasureMarker)
+                    .title("Lat: " + String.valueOf(newTreasureMarker.latitude) + "| Long: " + String.valueOf(newTreasureMarker.longitude))
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
+            );
+            if (treasureLocations != null) {
+                treasureLocations.add(marker);
+            } else {
+                treasureLocations = new ArrayList<Marker>();
+            }
+        }*/
+    }
+
+    private void removeTreasureIfCollected(Location playerLocation) {
+        for (Marker treasureLocation : treasureLocations)
+        {
+            // Use Pythagore to calculate the distance between the player and each chest
+            double latitudeDistance = treasureLocation.getPosition().latitude - playerLocation.getLatitude();
+            double longitudeDistance = treasureLocation.getPosition().longitude - playerLocation.getLongitude();
+            double distance =  Math.sqrt((latitudeDistance * latitudeDistance) + (longitudeDistance * longitudeDistance));
+            if (distance <= TREASURE_COLLECT_DISTANCE) {
+                Toast.makeText(getApplicationContext(), String.valueOf(distance) + " | " + String.valueOf(TREASURE_COLLECT_DISTANCE), Toast.LENGTH_LONG).show();
+                treasureLocation.remove();
+            }
+        }
+    }
+
+    /*    private void generateNumberOfTreasures(double valueLat, double valueLon) {
         LatLng newMarker = new LatLng(valueLat, valueLon);
 
         mMap.addMarker(new MarkerOptions()
@@ -198,7 +255,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 .title("Test " + valueLat + " " + valueLon)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
         );
-    }
+    }*/
     
    private LatLng getMaxDistLatLng(int metres){
         LatLng BoundMaxDist;
