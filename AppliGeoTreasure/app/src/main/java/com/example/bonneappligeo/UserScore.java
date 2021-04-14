@@ -1,6 +1,7 @@
 package com.example.bonneappligeo;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class UserScore {
 
@@ -39,5 +40,10 @@ public class UserScore {
 
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
+    }
+
+    public long getTimeDiff(){
+        long diffInMillies = endDate.getTime() - startDate.getTime();
+        return TimeUnit.MINUTES.convert(diffInMillies, TimeUnit.MILLISECONDS);
     }
 }
