@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 public class UserScore {
 
     private String username;
-    private int score;
+    private int treasuresFound;
     private Date startDate;
     private Date endDate;
 
@@ -18,12 +18,12 @@ public class UserScore {
         this.username = username;
     }
 
-    public int getScore() {
-        return score;
+    public int getTreasuresFound() {
+        return treasuresFound;
     }
 
-    public void setScore(int score) {
-        this.score = score;
+    public void setTreasuresFound(int treasuresFound) {
+        this.treasuresFound = treasuresFound;
     }
 
     public Date getStartDate() {
@@ -46,4 +46,11 @@ public class UserScore {
         long diffInMillies = endDate.getTime() - startDate.getTime();
         return TimeUnit.MINUTES.convert(diffInMillies, TimeUnit.MILLISECONDS);
     }
+
+    public long getScore(){
+        long diffInMillies = endDate.getTime() - startDate.getTime();
+        long score = (treasuresFound*1500)/(diffInMillies/100);
+        return score;
+    }
+
 }

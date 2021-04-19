@@ -1,9 +1,11 @@
 package com.example.bonneappligeo;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
+
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.media.MediaPlayer;
@@ -18,8 +20,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
-import com.google.android.gms.common.util.ArrayUtils;
+import com.example.bonneappligeo.scoreManager.ScoreFactory;
+import com.example.bonneappligeo.scoreManager.ScoreService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -94,7 +99,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     }
 
     private void setCallback() {
-        locationCallback = new LocationCallback(){
+        locationCallback = new LocationCallback() {
 
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
@@ -113,7 +118,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
 
     }
 
-    private void stopLocationUpdates(){
+    private void stopLocationUpdates() {
         fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
@@ -145,18 +150,15 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     }
 
 
-
-
     private void updateGPS() {
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
                 @Override
                 public void onSuccess(Location location) {
-                    if (location != null){
+                    if (location != null) {
                         updateGPSValues(location);
-                    }
-                    else
+                    } else
                         Toast.makeText(getApplicationContext(), "Impossible d'obtenir la localisation GPS ", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -177,7 +179,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.pirate))
         );
 
-        if(gameStarting){
+        if (gameStarting) {
             generateRandomTreasures(NUMBER_OF_TREASURE, location);
             gameStarting = false;
             mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
@@ -194,8 +196,8 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         double rangeMaxLon = playerLocation.getLongitude() + RANGE_TREASURE_SPAWN_MIN_DISTANCE;
         Random random = new Random();
         for (int counter = 0; counter < numberOfTreasures; counter++) {
-            double randomValueLat = rangeMinLat + ( rangeMaxLat - rangeMinLat) * random.nextDouble();
-            double randomValueLon = rangeMinLon + ( rangeMaxLon - rangeMinLon) * random.nextDouble();
+            double randomValueLat = rangeMinLat + (rangeMaxLat - rangeMinLat) * random.nextDouble();
+            double randomValueLon = rangeMinLon + (rangeMaxLon - rangeMinLon) * random.nextDouble();
             LatLng newTreasureMarker = new LatLng(randomValueLat, randomValueLon);
             Marker marker = mMap.addMarker(new MarkerOptions()
                     .position(newTreasureMarker)
@@ -207,30 +209,37 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
             } else {
                 treasureLocations = new ArrayList<Marker>();
                 treasureLocations.add(marker);
-
             }
         }
+
+
+        showNotificationTreasureIsNear();
+    }
+
+    private void showNotificationTreasureIsNear() {
+        // verifier le format pour l'icon, elle ne s'affiche pas bien
+        Notifier notifier = new Notifier(this);
+        notifier.notify("Attention moussaillon !", "Un trésor est tout près", R.drawable.chest);
     }
 
     private void removeTreasureIfCollected(Location playerLocation) {
 
-       // for (Marker treasureLocation : treasureLocations)
+        // for (Marker treasureLocation : treasureLocations)
         Iterator<Marker> treasureIterator = treasureLocations.iterator();
-        while(treasureIterator.hasNext())
-        {
+        while (treasureIterator.hasNext()) {
             Marker treasureLocation = treasureIterator.next();
             // Utiliser Pythagore pour calculer la distance entre le joueur et chaque coffre.
             double latitudeDistance = treasureLocation.getPosition().latitude - playerLocation.getLatitude();
             double longitudeDistance = treasureLocation.getPosition().longitude - playerLocation.getLongitude();
-            double distance =  Math.sqrt((latitudeDistance * latitudeDistance) + (longitudeDistance * longitudeDistance));
+            double distance = Math.sqrt((latitudeDistance * latitudeDistance) + (longitudeDistance * longitudeDistance));
             if (distance <= TREASURE_COLLECT_DISTANCE) {
                 Toast.makeText(getApplicationContext(), String.valueOf(distance) + " | " + String.valueOf(TREASURE_COLLECT_DISTANCE), Toast.LENGTH_LONG).show();
                 treasureLocation.remove();
                 treasureIterator.remove();
                 treasuresFound++;
-               // Toast.makeText(getApplicationContext(), treasureLocations.size(), Toast.LENGTH_SHORT).show();
+                // Toast.makeText(getApplicationContext(), treasureLocations.size(), Toast.LENGTH_SHORT).show();
                 Log.e("nb restant ///////", String.valueOf(treasureLocations.size()));
-                final MediaPlayer mp = MediaPlayer.create(this,R.raw.gold_coins_chest);
+                final MediaPlayer mp = MediaPlayer.create(this, R.raw.gold_coins_chest);
                 mp.start();
                 mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                     @Override
@@ -243,20 +252,16 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
 
         if (treasureLocations.size() == 0) {
             stopLocationUpdates();
-            Log.e("entrer scroes", "Score");
-            userScore.setScore(treasuresFound);
-            userScore.setEndDate(new Date());
-            userScore.setUsername("Test sprint 1");
-            addUserScore(userScore);
+            gameEnded();
         }
         //TODO: Check if game is done et demander nom d'utilisateur
 
-        setTitle("Trésors collectionés : " +String.valueOf(treasuresFound));
+        setTitle("Trésors collectionés : " + String.valueOf(treasuresFound));
     }
-    private void gameEnded(){
-        userScore.setScore(treasuresFound);
-        userScore.setEndDate(new Date());
 
+    private void gameEnded() {
+        userScore.setTreasuresFound(treasuresFound);
+        userScore.setEndDate(new Date());
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_add_userscore);
         dialog.setTitle("Jeu fini");
@@ -268,7 +273,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
             public void onClick(View v) {
                 EditText editText_username = dialog.findViewById(R.id.editText_addUserScore_username);
                 userScore.setUsername(editText_username.getText().toString());
-                addUserScore(userScore);
+
                 dialog.dismiss();
             }
         });
@@ -276,22 +281,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         dialog.show();
     }
 
-    private void addUserScore(UserScore userScore) {
-        db.collection("UserScore")
-                .add(userScore)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Toast.makeText(getApplicationContext(), "Score sauvegardé", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getApplicationContext(), "Erreur, score non sauvegardé", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
+
 }
 
 
