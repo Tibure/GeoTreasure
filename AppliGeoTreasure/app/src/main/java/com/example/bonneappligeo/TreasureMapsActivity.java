@@ -50,7 +50,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     public static final int DEFAULT_UPDATE_INTERVAL = 30;
     public static final int FAST_UPDATE_INTERVAL = 5;
     private static final int PERMISSION_FINE_LOCATION = 99;
-    private static final double RANGE_TREASURE_SPAWN_MIN_DISTANCE = 0.07;
+    private static final double RANGE_TREASURE_SPAWN_MIN_DISTANCE = 0.05;
     private static final int NUMBER_OF_TREASURE = 4;
     private static final double TREASURE_COLLECT_DISTANCE = 0.0015;
     private GoogleMap mMap;
@@ -82,7 +82,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         Date startDate = new Date();
         userScore.setStartDate(startDate);
 
-        locationRequest = new LocationRequest();
+        locationRequest = LocationRequest.create();
         locationRequest.setInterval(1000 * DEFAULT_UPDATE_INTERVAL);
         locationRequest.setFastestInterval(1000 * FAST_UPDATE_INTERVAL);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -199,13 +199,15 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
             LatLng newTreasureMarker = new LatLng(randomValueLat, randomValueLon);
             Marker marker = mMap.addMarker(new MarkerOptions()
                     .position(newTreasureMarker)
-                    .title("Lat: " + String.valueOf(newTreasureMarker.latitude) + "| Long: " + String.valueOf(newTreasureMarker.longitude))
+                    .title(String.valueOf(counter))
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
             );
             if (treasureLocations != null) {
                 treasureLocations.add(marker);
             } else {
                 treasureLocations = new ArrayList<Marker>();
+                treasureLocations.add(marker);
+
             }
         }
     }
@@ -226,6 +228,8 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 treasureLocation.remove();
                 treasureIterator.remove();
                 treasuresFound++;
+               // Toast.makeText(getApplicationContext(), treasureLocations.size(), Toast.LENGTH_SHORT).show();
+                Log.e("nb restant ///////", String.valueOf(treasureLocations.size()));
                 final MediaPlayer mp = MediaPlayer.create(this,R.raw.gold_coins_chest);
                 mp.start();
                 mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -235,6 +239,15 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                     }
                 });
             }
+        }
+
+        if (treasureLocations.size() == 0) {
+            stopLocationUpdates();
+            Log.e("entrer scroes", "Score");
+            userScore.setScore(treasuresFound);
+            userScore.setEndDate(new Date());
+            userScore.setUsername("Test sprint 1");
+            addUserScore(userScore);
         }
         //TODO: Check if game is done et demander nom d'utilisateur
 
