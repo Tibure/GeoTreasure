@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">BonneAppliGeo</string>
     <string name="title_activity_treasure_maps">Map</string>
+    <string name="temps">Temps :</string>
+    <string name="username">Username</string>
+    <string name="f_licitations">Félicitations!</string>
+    <string name="soumettre">Soumettre</string>
+    <string name="tr_sors_trouv_s">Trésors trouvés :</string>
 </resources>
