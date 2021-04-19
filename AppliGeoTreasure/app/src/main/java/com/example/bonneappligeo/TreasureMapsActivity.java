@@ -1,6 +1,9 @@
 package com.example.bonneappligeo;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -12,6 +15,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -200,6 +205,15 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 treasureLocations = new ArrayList<Marker>();
             }
         }
+
+
+        showNotificationTreasureIsNear();
+    }
+
+    private void showNotificationTreasureIsNear() {
+        // verifier le format pour l'icon, elle ne s'affiche pas bien
+        Notifier notifier = new Notifier(this);
+        notifier.notify("Attention moussaillon !", "Un trésor est tout près", R.drawable.chest);
     }
 
     private void removeTreasureIfCollected(Location playerLocation) {
