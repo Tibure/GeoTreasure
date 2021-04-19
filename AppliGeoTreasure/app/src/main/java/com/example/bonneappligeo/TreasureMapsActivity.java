@@ -3,7 +3,6 @@ package com.example.bonneappligeo;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.media.MediaPlayer;
@@ -19,7 +18,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.google.android.gms.common.util.ArrayUtils;
+import com.example.bonneappligeo.scoreManager.ScoreFactory;
+import com.example.bonneappligeo.scoreManager.ScoreService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -207,7 +207,6 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
             } else {
                 treasureLocations = new ArrayList<Marker>();
                 treasureLocations.add(marker);
-
             }
         }
     }
@@ -243,20 +242,15 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
 
         if (treasureLocations.size() == 0) {
             stopLocationUpdates();
-            Log.e("entrer scroes", "Score");
-            userScore.setScore(treasuresFound);
-            userScore.setEndDate(new Date());
-            userScore.setUsername("Test sprint 1");
-            addUserScore(userScore);
+            gameEnded();
         }
         //TODO: Check if game is done et demander nom d'utilisateur
 
         setTitle("Trésors collectionés : " +String.valueOf(treasuresFound));
     }
     private void gameEnded(){
-        userScore.setScore(treasuresFound);
+        userScore.setTreasuresFound(treasuresFound);
         userScore.setEndDate(new Date());
-
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_add_userscore);
         dialog.setTitle("Jeu fini");
@@ -268,7 +262,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
             public void onClick(View v) {
                 EditText editText_username = dialog.findViewById(R.id.editText_addUserScore_username);
                 userScore.setUsername(editText_username.getText().toString());
-                addUserScore(userScore);
+
                 dialog.dismiss();
             }
         });
@@ -276,22 +270,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         dialog.show();
     }
 
-    private void addUserScore(UserScore userScore) {
-        db.collection("UserScore")
-                .add(userScore)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Toast.makeText(getApplicationContext(), "Score sauvegardé", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getApplicationContext(), "Erreur, score non sauvegardé", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
+
 }
 
 
