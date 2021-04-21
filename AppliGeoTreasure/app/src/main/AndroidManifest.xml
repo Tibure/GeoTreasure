@@ -17,8 +17,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BonneAppliGeo">
         <activity android:name=".LeaderboardActivity">
-            <intent-filter>
-            </intent-filter>
         </activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
