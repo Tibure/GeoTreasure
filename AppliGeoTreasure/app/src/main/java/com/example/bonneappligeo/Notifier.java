@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
 import android.provider.Settings;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -15,6 +16,7 @@ public class Notifier {
     private static final String CHANNEL_ID = "42";
     private static final CharSequence CHANNEL_NAME = "Notification";
     private static final String CHANNEL_DESCRIPTION = "NotificationDescription";
+    static int notificationId = 2;
 
     public Notifier(Context context) {
         this.context = context;
@@ -39,7 +41,7 @@ public class Notifier {
         notificationBuilder.setColor(ContextCompat.getColor(context, R.color.yellow));
         notificationBuilder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
-        // incrémenter le id de notify
-        notificationManagerCompat.notify(2, notificationBuilder.build());
+        notificationManagerCompat.notify(notificationId, notificationBuilder.build());
+        notificationId++;
     }
 }
