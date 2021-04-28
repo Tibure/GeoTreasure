@@ -8,6 +8,7 @@ import android.provider.Settings;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 
 public class Notifier {
     private Context context;
@@ -34,11 +35,11 @@ public class Notifier {
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, CHANNEL_ID);
         notificationBuilder.setContentTitle(title);
         notificationBuilder.setContentText(text);
-        // verifier le format pour l'icon
         notificationBuilder.setSmallIcon(icon);
-        // notificationBuilder.setSound(Settings.System.DEFAULT_NOTIFICATION_URI);
+        notificationBuilder.setColor(ContextCompat.getColor(context, R.color.yellow));
         notificationBuilder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
-        notificationManagerCompat.notify(1, notificationBuilder.build());
+        // incrémenter le id de notify
+        notificationManagerCompat.notify(2, notificationBuilder.build());
     }
 }
