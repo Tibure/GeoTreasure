@@ -7,5 +7,11 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="play_game_start_color">#c46739</color>
+    <color name="play_game_end_color">#912016</color>
+    <color name="show_leaderboard_start_color">#9ecc2b</color>
+    <color name="show_leaderboard_end_color">#309113</color>
+    <color name="top_bg">#b6b5bd</color>
+    <color name="home_text_color">#f5f5f5</color>
     <color name="yellow">#FFFF00</color>
 </resources>
