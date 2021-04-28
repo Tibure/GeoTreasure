@@ -31,6 +31,7 @@ public class UserScoreRecyclerAdapter extends RecyclerView.Adapter<UserScoreRecy
         UserScore userScoreBind = userScores.get(position);
         holder.textViewUsername.setText(userScoreBind.getUsername());
         holder.textViewScore.setText(String.valueOf(userScoreBind.getScore()));
+        holder.textViewTimeDiff.setText(String.valueOf(userScoreBind.getTimeDiff())+" secondes");
     }
 
     @Override
@@ -40,10 +41,10 @@ public class UserScoreRecyclerAdapter extends RecyclerView.Adapter<UserScoreRecy
 
 
     public static class MyViewHolder extends RecyclerView.ViewHolder{
-        TextView textViewUsername;
-        TextView textViewScore;
+        TextView textViewUsername,textViewScore, textViewTimeDiff;
         public MyViewHolder(@NonNull View itemView){
             super(itemView);
+            textViewTimeDiff = itemView.findViewById(R.id.textView_cardUserScore_time);
             textViewUsername = itemView.findViewById(R.id.textView_cardUserScore_username);
             textViewScore = itemView.findViewById(R.id.textView_cardUserScore_score);
         }

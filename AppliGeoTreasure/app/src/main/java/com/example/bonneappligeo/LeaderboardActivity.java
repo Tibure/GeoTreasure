@@ -42,7 +42,6 @@ public class LeaderboardActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<List<UserScore>> task) {
                 if(task.isSuccessful()){
-                    Log.d("130491", "HEYYY");
                     userScores.addAll(task.getResult());
                     recyclerViewAdapter.notifyDataSetChanged();
                 }else{

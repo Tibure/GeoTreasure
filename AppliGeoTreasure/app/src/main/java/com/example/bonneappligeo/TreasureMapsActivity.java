@@ -66,7 +66,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     LatLng myLocation;
     List<Marker> treasureLocations;
     boolean gameStarting = true;
-    FirebaseFirestore db;
+    ScoreService scoreService;
     private int treasuresFound = 0;
     private UserScore userScore = new UserScore();
 
@@ -82,7 +82,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        db = FirebaseFirestore.getInstance();
+        scoreService = ScoreFactory.getInstance();
 
         Date startDate = new Date();
         userScore.setStartDate(startDate);
@@ -265,6 +265,8 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_add_userscore);
         dialog.setTitle("Jeu fini");
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
 
         Button addUserScoreButton = dialog.findViewById(R.id.btn_addUserScore_add);
 
@@ -273,7 +275,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
             public void onClick(View v) {
                 EditText editText_username = dialog.findViewById(R.id.editText_addUserScore_username);
                 userScore.setUsername(editText_username.getText().toString());
-
+                scoreService.createScore(userScore);
                 dialog.dismiss();
             }
         });
