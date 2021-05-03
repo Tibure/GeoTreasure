@@ -30,7 +30,7 @@ public class UserScoreRecyclerAdapter extends RecyclerView.Adapter<UserScoreRecy
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         UserScore userScoreBind = userScores.get(position);
         holder.textViewUsername.setText(userScoreBind.getUsername());
-        holder.textViewScore.setText(String.valueOf(userScoreBind.getScore()));
+        holder.textViewScore.setText(String.valueOf(userScoreBind.getScore())+ " pts");
         holder.textViewTimeDiff.setText(String.valueOf(userScoreBind.getTimeDiff())+" secondes");
     }
 

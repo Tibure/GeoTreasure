@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -319,7 +320,12 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         dialog.setTitle("Jeu fini");
         dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(false);
+        TextView textViewTime, textViewScore;
+        textViewTime = dialog.findViewById(R.id.textView_cardUserScore_time);
+        textViewScore = dialog.findViewById(R.id.textView_cardUserScore_score);
 
+        textViewTime.setText(String.valueOf(userScore.getTimeDiff()) + "s");
+        textViewScore.setText(String.valueOf(userScore.getScore())+ " pts");
         Button addUserScoreButton = dialog.findViewById(R.id.btn_addUserScore_add);
 
         addUserScoreButton.setOnClickListener(new View.OnClickListener() {
