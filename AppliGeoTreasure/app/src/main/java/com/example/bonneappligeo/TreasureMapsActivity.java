@@ -249,12 +249,10 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                     .title(String.valueOf(counter))
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.chest))
             );
-            if (treasureLocations != null) {
-                treasureLocations.add(marker);
-            } else {
+
+            if (treasureLocations == null)
                 treasureLocations = new ArrayList<Marker>();
-                treasureLocations.add(marker);
-            }
+            treasureLocations.add(marker);
 
             treasureGeofenceService.addGeofencingTreasure(randomValueLat, randomValueLon, counter);
         }
