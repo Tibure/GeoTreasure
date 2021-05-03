@@ -11,7 +11,6 @@ import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -66,6 +65,7 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     private int treasuresFound = 0;
     private UserScore userScore = new UserScore();
     private TreasureGeofenceService treasureGeofenceService;
+    Button btn_surrender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,7 +138,39 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     }
 
     private void setListener() {
+        btn_surrender = findViewById(R.id.btn_treasureMaps_surrender);
+        btn_surrender.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                confirmSurrender();
+            }
+        });
+    }
 
+    private void confirmSurrender() {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_surrender_validation);
+        dialog.setTitle("Abandonner");
+        Button btn_confirm, btn_cancel;
+        btn_confirm = dialog.findViewById(R.id.btn_surrenderValidation_confirm);
+        btn_cancel = dialog.findViewById(R.id.btn_surrenderValidation_cancel);
+
+        btn_confirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                finish();
+            }
+        });
+
+        btn_cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
     }
 
     @Override
