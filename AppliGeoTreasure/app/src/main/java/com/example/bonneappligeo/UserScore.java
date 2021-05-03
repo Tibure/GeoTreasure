@@ -44,7 +44,7 @@ public class UserScore {
 
     public long getTimeDiff(){
         long diffInMillies = endDate.getTime() - startDate.getTime();
-        return TimeUnit.MINUTES.convert(diffInMillies, TimeUnit.MILLISECONDS);
+        return TimeUnit.SECONDS.convert(diffInMillies, TimeUnit.MILLISECONDS);
     }
 
     public long getScore(){

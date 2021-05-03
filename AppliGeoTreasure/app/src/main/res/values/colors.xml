@@ -13,4 +13,5 @@
     <color name="show_leaderboard_end_color">#309113</color>
     <color name="top_bg">#b6b5bd</color>
     <color name="home_text_color">#f5f5f5</color>
+    <color name="yellow">#FFFF00</color>
 </resources>

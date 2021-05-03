@@ -1,13 +1,13 @@
 package com.example.bonneappligeo;
 
 import android.Manifest;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Dialog;
 import android.content.Context;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,9 +20,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.ProcessLifecycleOwner;
 import com.example.bonneappligeo.scoreManager.ScoreFactory;
 import com.example.bonneappligeo.scoreManager.ScoreService;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -38,10 +37,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -50,7 +46,7 @@ import java.util.List;
 import java.util.Random;
 
 
-public class TreasureMapsActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class TreasureMapsActivity extends AppCompatActivity implements OnMapReadyCallback, LifecycleObserver {
     final Context context = this;
     public static final int DEFAULT_UPDATE_INTERVAL = 30;
     public static final int FAST_UPDATE_INTERVAL = 5;
@@ -64,25 +60,30 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     LocationRequest locationRequest;
     private LocationCallback locationCallback;
     LatLng myLocation;
-    List<Marker> treasureLocations;
+    private List<Marker> treasureLocations;
     boolean gameStarting = true;
-    FirebaseFirestore db;
+    ScoreService scoreService;
     private int treasuresFound = 0;
     private UserScore userScore = new UserScore();
-
+    private TreasureGeofenceService treasureGeofenceService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        treasureGeofenceService = new TreasureGeofenceService();
+        startService();
+
         // Retrieve the content view that renders the map.
         setContentView(R.layout.activity_treasure_maps);
+        ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
         // Get the SupportMapFragment and request notification
         // when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        db = FirebaseFirestore.getInstance();
+        scoreService = ScoreFactory.getInstance();
 
         Date startDate = new Date();
         userScore.setStartDate(startDate);
@@ -96,6 +97,20 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
 
         setListener();
         setCallback();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        treasureGeofenceService.removeGeofences(this);
+        stopService(new Intent(this, TreasureGeofenceService.class));
+    }
+
+    private void startService() {
+        Intent intent = new Intent(this, TreasureGeofenceService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent);
+        }
     }
 
     private void setCallback() {
@@ -149,7 +164,6 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         mMap = googleMap;
     }
 
-
     private void updateGPS() {
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -185,7 +199,6 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
             mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
             mMap.animateCamera((CameraUpdateFactory.zoomTo(15)));
         }
-
         removeTreasureIfCollected(location);
     }
 
@@ -210,35 +223,37 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
                 treasureLocations = new ArrayList<Marker>();
                 treasureLocations.add(marker);
             }
+
+            treasureGeofenceService.addGeofencingTreasure(randomValueLat, randomValueLon, counter);
         }
-
-
-        showNotificationTreasureIsNear();
-    }
-
-    private void showNotificationTreasureIsNear() {
-        // verifier le format pour l'icon, elle ne s'affiche pas bien
-        Notifier notifier = new Notifier(this);
-        notifier.notify("Attention moussaillon !", "Un trésor est tout près", R.drawable.chest);
+        treasureGeofenceService.addGeofencing(LocationServices.getGeofencingClient(this), this);
     }
 
     private void removeTreasureIfCollected(Location playerLocation) {
-
-        // for (Marker treasureLocation : treasureLocations)
         Iterator<Marker> treasureIterator = treasureLocations.iterator();
-        while (treasureIterator.hasNext()) {
-            Marker treasureLocation = treasureIterator.next();
-            // Utiliser Pythagore pour calculer la distance entre le joueur et chaque coffre.
-            double latitudeDistance = treasureLocation.getPosition().latitude - playerLocation.getLatitude();
-            double longitudeDistance = treasureLocation.getPosition().longitude - playerLocation.getLongitude();
-            double distance = Math.sqrt((latitudeDistance * latitudeDistance) + (longitudeDistance * longitudeDistance));
+        while(treasureIterator.hasNext())
+        {
+            Marker treasureMarker = treasureIterator.next();
+
+            Location teasureLocation = new Location(LocationManager.GPS_PROVIDER);
+            teasureLocation.setLatitude(treasureMarker.getPosition().latitude);
+            teasureLocation.setLongitude(treasureMarker.getPosition().longitude);
+            double distance = getDistanceBetweenTwoPoints(teasureLocation, playerLocation);
             if (distance <= TREASURE_COLLECT_DISTANCE) {
-                Toast.makeText(getApplicationContext(), String.valueOf(distance) + " | " + String.valueOf(TREASURE_COLLECT_DISTANCE), Toast.LENGTH_LONG).show();
-                treasureLocation.remove();
+                Toast.makeText(getApplicationContext(), "Bravo !  Vous avez rammasé un coffre !", Toast.LENGTH_LONG).show();
+
+                // get the element index
+                int elementIndex = 0;
+                for (int counter = 0; counter < treasureLocations.size(); counter++) {
+                    if (treasureLocations.get(counter) == treasureMarker) {
+                        elementIndex = counter;
+                    }
+                }
+
+                treasureMarker.remove();
                 treasureIterator.remove();
+                treasureGeofenceService.removeAGeofence(this, elementIndex);
                 treasuresFound++;
-                // Toast.makeText(getApplicationContext(), treasureLocations.size(), Toast.LENGTH_SHORT).show();
-                Log.e("nb restant ///////", String.valueOf(treasureLocations.size()));
                 final MediaPlayer mp = MediaPlayer.create(this, R.raw.gold_coins_chest);
                 mp.start();
                 mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -259,12 +274,21 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         setTitle("Trésors collectionés : " + String.valueOf(treasuresFound));
     }
 
+    private double getDistanceBetweenTwoPoints(Location firstLocation, Location secondLocation) {
+        // Utiliser Pythagore pour calculer la distance entre le joueur et chaque coffre.
+        double latitudeDistance = firstLocation.getLatitude() - secondLocation.getLatitude();
+        double longitudeDistance = firstLocation.getLongitude() - secondLocation.getLongitude();
+        return Math.sqrt((latitudeDistance * latitudeDistance) + (longitudeDistance * longitudeDistance));
+    }
+
     private void gameEnded() {
         userScore.setTreasuresFound(treasuresFound);
         userScore.setEndDate(new Date());
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_add_userscore);
         dialog.setTitle("Jeu fini");
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
 
         Button addUserScoreButton = dialog.findViewById(R.id.btn_addUserScore_add);
 
@@ -273,12 +297,14 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
             public void onClick(View v) {
                 EditText editText_username = dialog.findViewById(R.id.editText_addUserScore_username);
                 userScore.setUsername(editText_username.getText().toString());
-
+                scoreService.createScore(userScore);
                 dialog.dismiss();
             }
         });
 
         dialog.show();
+
+        treasureGeofenceService.removeGeofences(this);
     }
 
 
