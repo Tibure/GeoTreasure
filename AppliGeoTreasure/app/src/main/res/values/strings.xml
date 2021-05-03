@@ -7,4 +7,12 @@
     <string name="soumettre">Soumettre</string>
     <string name="tr_sors_trouv_s">Trésors trouvés :</string>
     <string name="textview">TextView</string>
+    <string name="geotreasure">GeoTreasure</string>
+    <string name="chasse_aux_tr_sors">Chasse aux trésors</string>
+    <string name="affiche_les_meilleurs_joueurs">Affiche les meilleurs joueurs</string>
+    <string name="classements">Classements</string>
+    <string name="affiche_les_tr_sors_sur_la_carte">Affiche les trésors sur la carte</string>
+    <string name="lancer_une_partie">Lancer une partie</string>
+    <string name="trophe">Trophe</string>
+    <string name="tresor">Tresor</string>
 </resources>

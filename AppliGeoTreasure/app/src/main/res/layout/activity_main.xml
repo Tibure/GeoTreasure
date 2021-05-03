@@ -18,20 +18,20 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="GeoTreasure"
+            android:text="@string/geotreasure"
             android:textSize="25sp"
             android:textColor="@color/black"
             android:fontFamily="sans-serif-black"
-            android:layout_marginLeft="20dp"
+            android:layout_marginStart="20dp"
             />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Chasse aux trésors"
+            android:text="@string/chasse_aux_tr_sors"
             android:textColor="@color/black"
             android:textSize="15sp"
             android:textStyle="bold"
-            android:layout_marginLeft="20dp"/>
+            android:layout_marginStart="20dp"/>
 
 
 
@@ -55,7 +55,8 @@
                 android:background="@drawable/bg_play_game"
                 android:orientation="horizontal"
                 android:padding="3dp"
-                android:clickable="true">
+                android:clickable="true"
+                android:focusable="true">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -65,9 +66,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="14dp"
+                        android:layout_marginStart="14dp"
                         android:layout_marginTop="10dp"
-                        android:text="Lancer une partie"
+                        android:text="@string/lancer_une_partie"
                         android:textColor="@color/home_text_color"
                         android:textSize="23sp"
                         android:textStyle="bold" />
@@ -75,14 +76,15 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="14dp"
-                        android:text="Affiche les trésors sur la carte"
+                        android:layout_marginStart="14dp"
+                        android:text="@string/affiche_les_tr_sors_sur_la_carte"
                         android:textColor="@color/home_text_color" />
                 </LinearLayout>
 
                 <ImageView
                     android:layout_width="90dp"
                     android:layout_height="90dp"
+                    android:contentDescription="@string/tresor"
                     android:padding="8dp"
                     android:src="@drawable/chest_home" />
             </LinearLayout>
@@ -106,9 +108,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="14dp"
+                        android:layout_marginStart="14dp"
                         android:layout_marginTop="10dp"
-                        android:text="Classements"
+                        android:text="@string/classements"
                         android:textColor="@color/home_text_color"
                         android:textSize="23sp"
                         android:textStyle="bold" />
@@ -116,15 +118,16 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="14dp"
-                        android:text="Affiche les meilleurs joueurs"
+                        android:layout_marginStart="14dp"
+                        android:text="@string/affiche_les_meilleurs_joueurs"
                         android:textColor="@color/home_text_color" />
                 </LinearLayout>
 
                 <ImageView
                     android:layout_width="90dp"
                     android:layout_height="90dp"
-                    android:layout_marginLeft="10dp"
+                    android:layout_marginStart="10dp"
+                    android:contentDescription="@string/trophe"
                     android:padding="8dp"
                     android:src="@drawable/trophy_home" />
             </LinearLayout>
