@@ -11,6 +11,7 @@ import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -71,6 +72,8 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.d("TreasureMapsActivity", "onCreate");
+
         treasureGeofenceService = new TreasureGeofenceService();
         startService();
 
@@ -97,6 +100,12 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
 
         setListener();
         setCallback();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d("TreasureMapsActivity", "onStart");
     }
 
     @Override

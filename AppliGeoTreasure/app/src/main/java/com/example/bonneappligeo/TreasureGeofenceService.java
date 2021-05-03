@@ -31,7 +31,6 @@ public class TreasureGeofenceService extends Service {
     private PendingIntent geofencePendingIntent;
     private List<Geofence> geofenceList;
     private GeofencingClient geofencingClient;
-    private final static int FOREGROUND_NOTIFICATION_ID = 1;
 
     public TreasureGeofenceService() {
         geofenceList = new ArrayList<Geofence>();
@@ -40,14 +39,8 @@ public class TreasureGeofenceService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            Notification notification = new Notification.Builder(this, "42")
-                    .setContentTitle("GeoTreasure")
-                    .setContentText("Vous avez commencé à jouer")
-                    .setSmallIcon(R.drawable.chest)
-                    .build();
-            startForeground(FOREGROUND_NOTIFICATION_ID, notification);
-        }
+        Notifier notifier = new Notifier(getApplicationContext());
+        notifier.createForegroundService(this, this);
     }
 
     @Nullable
