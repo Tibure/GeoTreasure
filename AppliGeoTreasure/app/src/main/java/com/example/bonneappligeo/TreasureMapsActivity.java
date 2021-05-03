@@ -73,8 +73,6 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.d("TreasureMapsActivity", "onCreate");
-
         treasureGeofenceService = new TreasureGeofenceService();
         startService();
 
@@ -101,12 +99,6 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
 
         setListener();
         setCallback();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.d("TreasureMapsActivity", "onStart");
     }
 
     @Override
