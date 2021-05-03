@@ -49,7 +49,7 @@ public class UserScore {
 
     public long getScore(){
         long diffInMillies = endDate.getTime() - startDate.getTime();
-        long score = (treasuresFound*1500)/(diffInMillies/100);
+        long score = (treasuresFound*1500)/(diffInMillies/15000);
         return score;
     }
 
