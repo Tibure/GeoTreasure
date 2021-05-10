@@ -322,11 +322,11 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(false);
         TextView textViewTime, textViewScore;
-        textViewTime = dialog.findViewById(R.id.textView_cardUserScore_time);
-        textViewScore = dialog.findViewById(R.id.textView_cardUserScore_score);
-
-        textViewTime.setText(String.valueOf(userScore.getTimeDiff()) + "s");
-        textViewScore.setText(String.valueOf(userScore.getScore())+ " pts");
+        textViewTime = dialog.findViewById(R.id.textView_addUserScore_time);
+        textViewScore = dialog.findViewById(R.id.textView_addUserScore_treasuresFound);
+        Log.e("allo",String.valueOf(userScore.getTimeDiff()));
+        textViewTime.setText("Temps: " + String.valueOf(userScore.getTimeDiff()) + "s");
+        textViewScore.setText("Trésors trouvés: " + String.valueOf(userScore.getTreasuresFound()));
         Button addUserScoreButton = dialog.findViewById(R.id.btn_addUserScore_add);
 
         addUserScoreButton.setOnClickListener(new View.OnClickListener() {
