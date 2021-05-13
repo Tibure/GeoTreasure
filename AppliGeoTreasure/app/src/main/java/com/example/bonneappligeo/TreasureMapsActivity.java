@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -144,12 +145,16 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
         btn_surrender.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                btn_surrender.animate().alpha(1f).setDuration(5000);
+                btn_surrender.animate().alpha(1f).translationYBy(-700).setDuration(2000);
+                btn_surrender.animate().alpha(1f).translationXBy(-350).setDuration(2000);
                 confirmSurrender();
             }
         });
     }
 
     private void confirmSurrender() {
+        btn_surrender = findViewById(R.id.btn_treasureMaps_surrender);
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_surrender_validation);
         dialog.setTitle("Abandonner");
@@ -169,9 +174,19 @@ public class TreasureMapsActivity extends AppCompatActivity implements OnMapRead
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
+                btn_surrender.animate().alpha(1f).translationYBy(+700).setDuration(2000);
+                btn_surrender.animate().alpha(1f).translationXBy(+350).setDuration(2000);
+
             }
         });
 
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                btn_surrender.animate().alpha(1f).translationYBy(+700).setDuration(2000);
+                btn_surrender.animate().alpha(1f).translationXBy(+350).setDuration(2000);
+            }
+        });
         dialog.show();
     }
 
